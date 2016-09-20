@@ -11,6 +11,15 @@
 // Windows Header Files:
 #include <windows.h>
 
-// TODO: reference additional headers your program requires here
-#include "deskdrop.h"
+// C RunTime Header Files
+#include <stdlib.h>
+#include <malloc.h>
+#include <memory.h>
+#include <tchar.h>
 
+
+// TODO: reference additional headers your program requires here
+extern int print_log(const wchar_t* format, ...);
+
+#define wprintf(format, ...) \
+        print_log(format, __VA_ARGS__)
