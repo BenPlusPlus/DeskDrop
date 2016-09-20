@@ -9,6 +9,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DeskDropLauncher", "DeskDro
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{66539394-DD96-48C6-AF60-726D82D43605}"
 	ProjectSection(SolutionItems) = preProject
+		LICENSE = LICENSE
 		readme.md = readme.md
 	EndProjectSection
 EndProject
