@@ -1,16 +1,14 @@
 #include "stdafx.h"
 #include <Windows.h>
+#include <CommCtrl.h>
+#include "Subclass.h"
 
-#define CUSTOMPROPERTY L"DeskDropOldProc"
+#define SUBCLASSID 90909
+
+WNDPROC OrigWndProc = 0;
 
 LRESULT CALLBACK DeskDropWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
-	WNDPROC OrigWndProc = (WNDPROC)GetProp(hWnd, CUSTOMPROPERTY);
-	if (OrigWndProc == NULL)
-	{
-		return 0;
-	}
-
 	switch (message)
 	{
 	case WM_PAINT:
@@ -21,38 +19,67 @@ LRESULT CALLBACK DeskDropWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM 
 		wchar_t* testmsg = L"Hi there!!!";
 		TextOut(hdc, 8, 8, testmsg, wcslen(testmsg));
 		EndPaint(hWnd, &ps);
+		return 0;
 	}
 	break;
-	default:
-		return CallWindowProc(OrigWndProc, hWnd, message, wParam, lParam);
 	}
-	return 0;
+
+	return CallWindowProc(OrigWndProc, hWnd, message, wParam, lParam);
+}
+
+LRESULT CALLBACK DeskDropWndProcSafe(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam, UINT_PTR uIdSubclass, DWORD_PTR dwRefData)
+{
+	switch (message)
+	{
+	case WM_PAINT:
+	{
+		PAINTSTRUCT ps;
+		HDC hdc = BeginPaint(hWnd, &ps);
+		// TODO: Add any drawing code that uses hdc here...
+		wchar_t* testmsg = L"Hi there!!!";
+		TextOut(hdc, 8, 8, testmsg, wcslen(testmsg));
+		EndPaint(hWnd, &ps);
+		return 0;
+	}
+	break;
+	case WM_NCDESTROY:
+	{
+		UnsubclassWindow(hWnd);
+	}
+	break;
+	}
+
+	return DefSubclassProc(hWnd, message, wParam, lParam);
 }
 
 
-void SubclassWindow(HWND hWnd)
+BOOL SubclassWindow(HWND hWnd)
 {
-	WNDPROC OrigWndProc = (WNDPROC)GetProp(hWnd, CUSTOMPROPERTY);
-	if (OrigWndProc)
+	if (OrigWndProc != 0)
 	{
-		return; // already subclassed
+		return TRUE;
 	}
 
 	OrigWndProc = (WNDPROC)GetWindowLongPtr(hWnd, GWLP_WNDPROC);
-	SetProp(hWnd, CUSTOMPROPERTY, OrigWndProc);
-	SetWindowLongPtr(hWnd, GWLP_WNDPROC, (long)DeskDropWndProc);
+	SetWindowLongPtr(hWnd, GWLP_WNDPROC, (LONG_PTR)DeskDropWndProc);
+
+	return TRUE;
+
+	//return SetWindowSubclass(hWnd, DeskDropWndProcSafe, SUBCLASSID, 0);
 }
 
 
-void UnsubclassWindow(HWND hWnd)
+BOOL UnsubclassWindow(HWND hWnd)
 {
-	WNDPROC OrigWndProc = (WNDPROC)GetProp(hWnd, CUSTOMPROPERTY);
-	if (OrigWndProc == NULL)
+	if (OrigWndProc == 0)
 	{
-		return; // not subclassed
+		return TRUE; // not subclassed
 	}
 
-	SetWindowLongPtr(hWnd, GWLP_WNDPROC, (long)OrigWndProc);
-	RemoveProp(hWnd, CUSTOMPROPERTY);
+	SetWindowLongPtr(hWnd, GWLP_WNDPROC, (LONG_PTR)OrigWndProc);
+
+	return TRUE;
+
+	//return RemoveWindowSubclass(hWnd, DeskDropWndProcSafe, SUBCLASSID);
 }
 

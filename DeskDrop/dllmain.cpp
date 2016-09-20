@@ -15,21 +15,31 @@ BOOL APIENTRY DllMain( HMODULE hModule,
 	DWORD pid = GetCurrentProcessId();
 	HWND targetWnd = GetTargetWindow();
 
+	if (targetWnd == NULL)
+	{
+		return TRUE;
+	}
+
+	BOOL success;
+
 	switch (ul_reason_for_call)
 	{
 	case DLL_PROCESS_ATTACH:
-	case DLL_THREAD_ATTACH:
-		helloStr = L"Target window: %d";
-		swprintf_s(buf, helloStr, targetWnd);
+		success = SubclassWindow(targetWnd);
+		helloStr = L"subclass success: %d";
+		swprintf_s(buf, helloStr, success);
 		MessageBox(NULL, buf, NULL, NULL);
-		SubclassWindow(targetWnd);
 		break;
+	case DLL_THREAD_ATTACH:
 	case DLL_THREAD_DETACH:
 	case DLL_PROCESS_DETACH:
-		//helloStr = L"Goodbye from: %d";
-		//swprintf_s(buf, helloStr, pid);
-		//MessageBox(NULL, buf, NULL, NULL);
-		UnsubclassWindow(targetWnd);
+		if (lpReserved != NULL) // only clean up if process is terminating.
+		{
+			helloStr = L"Goodbye, lpReserved: %d";
+			swprintf_s(buf, helloStr, lpReserved);
+			MessageBox(NULL, buf, NULL, NULL);
+			//UnsubclassWindow(targetWnd);
+		}
 		break;
 	}
 	return TRUE;
